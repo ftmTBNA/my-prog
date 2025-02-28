@@ -1,0 +1,2 @@
+curl -X GET http://localhost:8080/admin/dashboard -H 
+"Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzQwNzQxNzcwLCJyb2xlIjoiYWRtaW4iLCJ1c2VySWQiOjF9.YIlvNKHgKCO_Gs6RRj2ZyxXSYSZK_6cOIeg5bN8vo4A"

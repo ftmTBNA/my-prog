@@ -1,0 +1,3 @@
+curl -X GET http://localhost:8080/protected -H 
+"Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzQwNzQyNjAwLCJyb2xlIjoiYWRtaW4iLCJ1c2VySWQiOjF9.Z1859FUBoj8CMBEe_R2XicVcONULbENuS6C8jKxEsr8"
+
