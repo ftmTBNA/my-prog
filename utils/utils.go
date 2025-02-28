@@ -4,12 +4,25 @@ import (
 	"errors"
 	"regexp"
 	"time"
-	
+	"os"
+	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 // "os"
+
+var secretKey string
+
+func init() {
+	secretKey = os.Getenv("JWT_SECRET")
+	if secretKey == "" {
+		log.Fatal("JWT_SECRET is not set")
+	} else {
+		log.Println("JWT_SECRET loaded successfully")
+	}
+}
+
 
 type TokenData struct {
     UserID uint   `json:"userId"`
@@ -47,7 +60,8 @@ func CheckPassword(password, hashedPassword string) bool {
 // 	return token.SignedString(secretKey)
 // }
 
-const secretKey = "supersecret"
+// const secretKey = "supersecret"
+	
 
 func GenerateToken(email string, userID int, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -56,6 +70,12 @@ func GenerateToken(email string, userID int, role string) (string, error) {
 		"role":   role,
 		"exp":    time.Now().Add(time.Hour * 2).Unix(),
 	})
+
+	if secretKey == "" {
+		log.Fatal("JWT_SECRET is not set")
+	}
+	log.Println("JWT_SECRET loaded successfully")
+
 
 	return token.SignedString([]byte(secretKey))
 }

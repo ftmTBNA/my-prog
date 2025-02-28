@@ -4,7 +4,17 @@ import (
 	"log"
 	"my-prog/database"
 	"my-prog/routes"
-)
+	"github.com/joho/godotenv"
+	)
+
+func init() {
+    // Load environment variables from .env file
+    if err := godotenv.Load(); err != nil {
+        log.Println("No .env file found")
+    }
+}
+
+
 func main(){
 	// r:=gin.Default()
 

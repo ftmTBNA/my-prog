@@ -5,13 +5,30 @@ import (
 	"my-prog/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 )
 
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	dsn := "host=localhost user=postgres password=9912134 dbname=userdb port=5432 sslmode=disable"
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}) // ✅ استفاده از سینتکس جدید
+
+
+// 	requiredVars := []string{"DB_USER", "DB_PASSWORD", "DB_NAME", "DB_HOST", "DB_PORT"}
+// for _, v := range requiredVars {
+//     if os.Getenv(v) == "" {
+//         log.Fatalf("Environment variable %s is not set", v)
+//     }
+// }
+
+	// dsn := "host=localhost user=postgres password=9912134 dbname=userdb port=5432 sslmode=disable"
+	dsn := "host=" + os.Getenv("DB_HOST") +
+		" user=" + os.Getenv("DB_USER") +
+		" password=" + os.Getenv("DB_PASSWORD") +
+		" dbname=" + os.Getenv("DB_NAME") +
+		" port=" + os.Getenv("DB_PORT") +
+		" sslmode=disable"
+	
+	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})   
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
