@@ -7,13 +7,22 @@ import (
 	"github.com/joho/godotenv"
 	)
 
-func init() {
-    // Load environment variables from .env file
-    if err := godotenv.Load(); err != nil {
-        log.Println("No .env file found")
-    }
-}
+// func init() {
+//     // Load environment variables from .env file
+//     if err := godotenv.Load(); err != nil {
+//         log.Println("No .env file found")
+//     }
+// }
 
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	} else {
+		log.Println(".env file loaded successfully")
+	}
+}
 
 func main(){
 	// r:=gin.Default()

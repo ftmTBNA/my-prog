@@ -2,14 +2,16 @@ package utils
 
 import (
 	"errors"
+	"fmt"
+	"log"
+	"os"
 	"regexp"
 	"time"
-	"os"
-	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
 // "os"
 
 var secretKey string
@@ -23,12 +25,11 @@ func init() {
 	}
 }
 
-
 type TokenData struct {
-    UserID uint   `json:"userId"`
-    Email  string `json:"email"`
-    Role   string `json:"role"`
-    jwt.RegisteredClaims
+	UserID uint   `json:"userId"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
 }
 
 // **هش کردن رمز عبور**
@@ -46,7 +47,7 @@ func CheckPassword(password, hashedPassword string) bool {
 // **تولید توکن JWT**
 // func GenerateToken(userID uint) (string, error) {
 // 	secretKey := []byte(os.Getenv("JWT_SECRET" )) // مقدار متغیر محیطی
-// 	fmt.Println("JWT_SECRET:", secretKey) 
+// 	fmt.Println("JWT_SECRET:", secretKey)
 // 	if len(secretKey) == 0 {
 // 		return "", errors.New("JWT_SECRET is not set")
 // 	}
@@ -61,7 +62,6 @@ func CheckPassword(password, hashedPassword string) bool {
 // }
 
 // const secretKey = "supersecret"
-	
 
 func GenerateToken(email string, userID int, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -71,11 +71,12 @@ func GenerateToken(email string, userID int, role string) (string, error) {
 		"exp":    time.Now().Add(time.Hour * 2).Unix(),
 	})
 
+	fmt.Println("JWT_SECRET:", os.Getenv("JWT_SECRET"))
+
 	if secretKey == "" {
-		log.Fatal("JWT_SECRET is not set")
+		log.Fatal("JWT_SECRET is not sett")
 	}
 	log.Println("JWT_SECRET loaded successfully")
-
 
 	return token.SignedString([]byte(secretKey))
 }
@@ -85,7 +86,7 @@ func VerifyToken(tokenString string) (*jwt.Token, error) {
 	// secretKey := []byte(os.Getenv("JWT_SECRET"))
 	secretKey := []byte(secretKey)
 	if len(secretKey) == 0 {
-		return nil, errors.New("JWT_SECRET is not set")
+		return nil, errors.New("JWT_SECRET is not settt")
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
