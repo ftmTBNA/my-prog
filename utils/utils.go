@@ -15,14 +15,20 @@ import (
 // "os"
 
 var secretKey string
+// secretKey = []byte(os.Getenv("JWT_SECRET"))
 
-func init() {
+func Init() {
+
 	secretKey = os.Getenv("JWT_SECRET")
-	if secretKey == "" {
-		log.Fatal("JWT_SECRET is not set")
-	} else {
-		log.Println("JWT_SECRET loaded successfully")
-	}
+	fmt.Println("secretKey:", secretKey)
+
+
+	// secretKey = os.Getenv("JWT_SECRET")
+	// if secretKey == "" {
+	// 	log.Fatal("JWT_SECRET is not settttt")
+	// } else {
+	// 	log.Println("JWT_SECRET loaded successfully")
+	// }
 }
 
 type TokenData struct {
@@ -63,40 +69,43 @@ func CheckPassword(password, hashedPassword string) bool {
 
 // const secretKey = "supersecret"
 
-func GenerateToken(email string, userID int, role string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email":  email,
-		"userId": userID,
-		"role":   role,
-		"exp":    time.Now().Add(time.Hour * 2).Unix(),
-	})
+func GenerateToken(email string, userID uint, role string) (string, error) {
+	claims := TokenData{
+		Email:  email,
+		UserID: userID,
+		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
+		},
+	}
 
-	fmt.Println("JWT_SECRET:", os.Getenv("JWT_SECRET"))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	if secretKey == "" {
-		log.Fatal("JWT_SECRET is not sett")
+		log.Fatal("JWT_SECRET is not settt")
 	}
-	log.Println("JWT_SECRET loaded successfully")
 
 	return token.SignedString([]byte(secretKey))
 }
 
 // **بررسی اعتبار توکن JWT**
 func VerifyToken(tokenString string) (*jwt.Token, error) {
-	// secretKey := []byte(os.Getenv("JWT_SECRET"))
-	secretKey := []byte(secretKey)
-	if len(secretKey) == 0 {
+	if secretKey == "" {
 		return nil, errors.New("JWT_SECRET is not settt")
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &TokenData{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return secretKey, nil
+		return []byte(secretKey), nil
 	})
 
-	return token, err
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 // **بررسی صحت ایمیل**

@@ -22,6 +22,12 @@ func RequireRole(role string) gin.HandlerFunc  {
 		}
 
 		tokenData, ok := userToken.(*utils.TokenData)
+		if !ok || tokenData == nil {
+			fmt.Println("Failed type assertion or tokenData is nil")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
 		fmt.Println("tokenData:", tokenData) 
 		fmt.Println("tokenData.Role:", tokenData.Role) 
 		fmt.Println("role:", role) 

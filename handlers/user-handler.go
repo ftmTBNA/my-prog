@@ -160,7 +160,8 @@ func LoginHandler(c *gin.Context) {
 	// تولید توکن
 	fmt.Println("User ID:", user.ID) 
 	                                  //input.Email
-	token, err := utils.GenerateToken(user.Email, user.ID, user.Role)
+	token, err := utils.GenerateToken(user.Email, uint(user.ID), user.Role)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return

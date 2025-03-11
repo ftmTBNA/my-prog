@@ -22,15 +22,23 @@ func AuthMiddleware() gin.HandlerFunc {
 		// جدا کردن Bearer Token
 		// tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		token, err := utils.VerifyToken(authHeader)
-		fmt.Println("token: ", token)
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-			fmt.Println("err: ", err)
 			c.Abort()
 			return
 		}
-
-		c.Set("userToken", token)
+		
+		// اینجا Claims رو بکش بیرون
+		claims, ok := token.Claims.(*utils.TokenData)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
+		
+		c.Set("userToken", claims)
+		
 		c.Next()
+		
 	}
 }

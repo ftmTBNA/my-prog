@@ -4,8 +4,10 @@ import (
 	"log"
 	"my-prog/database"
 	"my-prog/routes"
+	"my-prog/utils"
+
 	"github.com/joho/godotenv"
-	)
+)
 
 // func init() {
 //     // Load environment variables from .env file
@@ -22,6 +24,7 @@ func init() {
 	} else {
 		log.Println(".env file loaded successfully")
 	}
+	utils.Init()
 }
 
 func main(){
