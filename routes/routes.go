@@ -8,12 +8,13 @@ import (
 )
 
 func SetupRouter() *gin.Engine {
+	// gin.SetMode(gin.ReleaseMode) // 🔥 add this in production
 	r := gin.Default()
 
 	// مسیرهای عمومی
 	r.GET("/users", handlers.GetUsers)
 	r.GET("/users/:id", handlers.GetUserByID)
-	r.POST("/users", handlers.CreateUser)
+	// r.POST("/users", handlers.CreateUser)
 	r.PUT("/users/:id", handlers.UpdateUser)
 	r.DELETE("/users/:id", handlers.DeleteUser)
 	r.POST("/signup", handlers.SignupHandler)

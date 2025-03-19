@@ -1,13 +1,18 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
 	"my-prog/database"
 	"my-prog/models"
-	"net/http"
+	"my-prog/redis-caching"
 	"my-prog/utils"
-	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 // var users = []models.User{
@@ -24,60 +29,97 @@ func GetUsers(c *gin.Context) {
 func GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
+	cacheKey := fmt.Sprintf("user:%d", id)
+	cachedData, err := rediss.RedisClient.Get(rediss.Ctx, cacheKey).Result()
+	if err == nil {
+		log.Println("Cache hit...")
+		if err := json.Unmarshal([]byte(cachedData), &user); err != nil {
+			log.Println("Failed to unmarshal user: %v", err)
+			return 
+		}
+		c.JSON(http.StatusOK, user)
+	}
 
-	err := database.DB.First(&user, id).Error
+	if err != redis.Nil {
+        log.Printf("Redis error: %v", err)
+    }
+
+	// var users []models.User
+
+
+	err = database.DB.First(&user, id).Error
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found in DB"})
 		return
+	}
+
+	log.Println("Cache miss! fetched from Postgres")
+
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		log.Printf("JSON Marshal error: %v", err)
+	}else {
+		err := rediss.RedisClient.Set(rediss.Ctx, cacheKey,userJson, 10 * time.Minute).Err()
+		if err != nil {
+            log.Printf("Failed to cache user: %v", err)
+        } else {
+            log.Println("User cached in Redis!")
+        }
 	}
 
 	c.JSON(http.StatusOK, user)
 }
 
-func CreateUser(c *gin.Context) {
-	var NewUser models.User
+// func CreateUser(c *gin.Context) {
+// 	var NewUser models.User
 
-	err := c.ShouldBindJSON(&NewUser)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// 	err := c.ShouldBindJSON(&NewUser)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	// Save data in db -------------------------------
-	// METHOD 1
+// 	// Save data in db -------------------------------
+// 	// METHOD 1
 
-	// در این روش، ما از یک تابع جداگانه (CreateUser) که در پکیج models تعریف شده، استفاده می‌کنیم.
-	// 🔹 این روش باعث می‌شه کد تمیزتر، قابل استفاده مجدد و ماژولار بشه.
+// 	// در این روش، ما از یک تابع جداگانه (CreateUser) که در پکیج models تعریف شده، استفاده می‌کنیم.
+// 	// 🔹 این روش باعث می‌شه کد تمیزتر، قابل استفاده مجدد و ماژولار بشه.
 
-	// METHOD 2
-	// database.DB.Create(&NewUser)
-	// در این روش، ما مستقیماً از gorm برای ذخیره کاربر جدید در دیتابیس استفاده می‌کنیم.
-	// 🔹 مشکلات این روش:
+// 	// METHOD 2
+// 	// database.DB.Create(&NewUser)
+// 	// در این روش، ما مستقیماً از gorm برای ذخیره کاربر جدید در دیتابیس استفاده می‌کنیم.
+// 	// 🔹 مشکلات این روش:
 
-	// اگر خطایی در ذخیره‌سازی رخ بده، نمی‌تونیم اون رو مدیریت کنیم مگر اینکه if err := database.DB.Create(...).Error رو دستی چک کنیم.
-	// کد ما وابسته به دیتابیس (database.DB) در سطح handlers می‌شه، که باعث کاهش ماژولار بودن کد می‌شه.
+// 	// اگر خطایی در ذخیره‌سازی رخ بده، نمی‌تونیم اون رو مدیریت کنیم مگر اینکه if err := database.DB.Create(...).Error رو دستی چک کنیم.
+// 	// کد ما وابسته به دیتابیس (database.DB) در سطح handlers می‌شه، که باعث کاهش ماژولار بودن کد می‌شه.
 
-	c.JSON(http.StatusCreated, NewUser)
+// 	c.JSON(http.StatusCreated, NewUser)
 
-}
+// }
 
 func UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
 
-	err := database.DB.First(&user, id).Error
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
+	// err := database.DB.First(&user, id).Error
+	// if err != nil {
+	// 	c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+	// 	return
+	// }
 
-	err = c.ShouldBindJSON(&user)
+	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	database.DB.Save(&user)
+	result := database.DB.Model(&models.User{}).Where("id = ?", id).Updates(models.User{Name: user.Name, Email: user.Email})
+    if result.Error != nil {
+        log.Printf("Failed to update user in Postgres: %v", result.Error)
+        return
+    }
+
+	// database.DB.Save(&user)
 	c.JSON(http.StatusOK, user)
 }
 

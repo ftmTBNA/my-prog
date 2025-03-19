@@ -1,3 +1,3 @@
-curl -X PUT "http://localhost:8080/users/4" -H 
+curl -X PUT "http://localhost:8080/users/3" -H 
 "Content-Type: application/json" -d 
-'{"name": "Ali Updated", "email": "ali.updated@example.com"}'
+'{"name": "fat Updated", "email": "fat.updated@example.com"}'
